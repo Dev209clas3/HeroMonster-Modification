@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>HerocoinV2 - cave Explorer Theme</title>
+  <style>
+    canvas {
+      background: url('cave_background.jpg') no-repeat center center;
+      background-size: cover;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    var canvas = document.getElementById("gameCanvas");
+    var ctx = canvas.getContext("2d");
+
+    // Background image
+    var bgReady = false;
+    var bgImage = new Image();
+    bgImage.onload = function () {
+      bgReady = true;
+    };
+    bgImage.src = "cave_background.jpg";
+
+    // Hero image
+    var heroReady = false;
+    var heroImage = new Image();
+    heroImage.onload = function () {
+      heroReady = true;
+    };
+    heroImage.src = "miner.png";
+
+    // coin image
+    var coinReady = false;
+    var coinImage = new Image();
+    coinImage.onload = function () {
+      coinReady = true;
+    };
+    coinImage.src = "coin.png";
+
+    // Mine image
+    var mineReady = false;
+    var mineImage = new Image();
+    mineImage.onload = function () {
+      mineReady = true;
+    };
+    mineImage.src = "mine.png";
+
+    // Diamond image
+    var diamondReady = false;
+    var diamondImage = new Image();
+    diamondImage.onload = function () {
+      diamondReady = true;
+    };
+    diamondImage.src = "diamond.png";
+
+    // Game objects
+    var hero = {
+      speed: 256, // movement in pixels per second
+      x: 0,
+      y: 0
+    };
+    var gameObjects = [
+    //   {
+    //   x: 0,
+    //   y: 0,
+    //   type: "coin"
+    // },
+    // {
+    //   x: 0,
+    //   y: 0,
+    //   type: "mine"
+    // },
+    // {
+    //   x: 0,
+    //   y: 0,
+    //   type: "diamond"
+    // }
+    ]; // Array of coins
+    var points = 0;
+
+    // Sound
+    var sound = new Audio('sound.mp3'); // Add your sound file
+
+    // Game over flag
+    var gameOver = false;
+
+    // Game timer
+    var gameTimer = 30; // 60 seconds
+
+    // Handle keyboard controls
+    var keysDown = {};
+
+    addEventListener("keydown", function (e) {
+      keysDown[e.keyCode] = true;
+    }, false);
+
+    addEventListener("keyup", function (e) {
+      delete keysDown[e.keyCode];
+    }, false);
+
+    // Reset the game when the player catches a coin
+    var generateGems = function () {
+
+      // Generate randomly 3 scoring objects
+      for (let index = 0; index < 3; index++) {
+        gameObjects.push({
+          x: 32 + (Math.random() * (canvas.width - 64)),
+          y: 32 + (Math.random() * (canvas.height - 64)),
+          type: Math.random() > 0.25 ? "coin" : "diamond"
+        });
+      }
+
+      // Generate randomly a mine (instant Game Over)
+      gameObjects.push({
+        x: 32 + (Math.random() * (canvas.width - 64)),
+        y: 32 + (Math.random() * (canvas.height - 64)),
+        type: "mine"
+      });
+    };
+
+    // Update game objects
+    var update = function (modifier) {
+      if (38 in keysDown) { // Player holding up
+        hero.y -= hero.speed * modifier;
+      }
+      if (40 in keysDown) { // Player holding down
+        hero.y += hero.speed * modifier;
+      }
+      if (37 in keysDown) { // Player holding left
+        hero.x -= hero.speed * modifier;
+      }
+      if (39 in keysDown) { // Player holding right
+        hero.x += hero.speed * modifier;
+      }
+
+      let pointsLeft = false;
+      // Are they touching?
+      gameObjects.forEach(function (gameObject, index) {
+
+        if (gameObject.type === "diamond" || gameObject.type === "coin") {
+          pointsLeft = true;
+        }
+
+        if (
+          hero.x <= (gameObject.x + 32)
+          && gameObject.x <= (hero.x + 32)
+          && hero.y <= (gameObject.y + 32)
+          && gameObject.y <= (hero.y + 32)
+        ) {
+
+          switch (gameObject.type) {
+            case "coin":
+              // Play sound
+              sound.play();
+
+              ++points;
+
+              gameObjects.splice(index, 1); // Remove caught coin
+
+              break;
+
+            case "diamond":
+              // Play sound
+              sound.play();
+
+              points += 3;
+
+              gameObjects.splice(index, 1); // Remove caught coin
+
+              break;
+
+            case "mine":
+              gameObjects.splice(index, 1); // Remove caught coin
+
+              gameOver = true;
+              break;
+
+            default:
+              break;
+          }
+        }
+      });
+
+      if (!pointsLeft) {
+        generateGems();
+      }
+
+      if (points >= 15) {
+        gameOver = true;
+      }
+
+    };
+
+    // Draw everything
+    var render = function () {
+      if (bgReady) {
+        ctx.drawImage(bgImage, 0, 0);
+      }
+
+      if (heroReady) {
+        ctx.drawImage(heroImage, hero.x, hero.y);
+      }
+
+      if (coinReady && mineReady) {
+        gameObjects.forEach(function (gameObject) {
+
+          switch (gameObject.type) {
+            case "coin":
+              ctx.drawImage(coinImage, gameObject.x, gameObject.y);
+              break;
+            case "mine":
+              ctx.drawImage(mineImage, gameObject.x, gameObject.y);
+              break;
+            case "diamond":
+              ctx.drawImage(diamondImage, gameObject.x, gameObject.y);
+              break;
+            default:
+              break;
+          }
+
+        });
+      }
+
+      // Score
+      ctx.fillStyle = "rgb(250, 250, 250)";
+      ctx.font = "24px Helvetica";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+
+      // Place objective on screen at middle top
+      ctx.fillText("Objective: Make $15 before running out of oxygen!", 32, canvas.height - 32);
+
+
+    
+      ctx.fillText("Profit: $" + points + ".00", 32, 32);
+
+      // Timer
+      ctx.fillText("Oxygen left: " + Math.ceil(gameTimer) + "lbs", 32, 64);
+
+      // Game over / win
+      if (gameOver) {
+        if (points >= 15) {
+          ctx.fillText("You win!", 32, 96);
+        } else {
+          ctx.fillText("Game over!", 32, 96);
+        }
+      }
+    };
+
+    // The main game loop
+    var main = function () {
+      var now = Date.now();
+      var delta = now - then;
+      var gameOverFrame = false;
+
+      update(delta / 1000);
+      render();
+
+      then = now;
+
+      // Check if time limit is up
+      if (gameTimer <= 0) {
+        gameOver = true;
+      } else {
+        gameTimer -= delta / 1000;
+      }
+
+      // Request to do this again ASAP
+      if (!gameOver) {
+        requestAnimationFrame(main);
+      } else {
+        // Render one last time to show game over screen
+        if (!gameOverFrame) {
+          gameOverFrame = true;
+          render();
+        }
+      }
+    };
+
+    // Cross-browser support for requestAnimationFrame
+    var w = window;
+    requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
+
+    // Let's play this game!
+    var then = Date.now();
+
+    hero.x = canvas.width / 2;
+    hero.y = canvas.height / 2;
+    generateGems();
+    main();
+  </script>
+</body>
+
+</html>
