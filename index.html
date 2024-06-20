@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>HerocoinV2 - cave Explorer Theme</title>
+  <title>HerocoinV2 - Cave Explorer Theme</title>
   <style>
     canvas {
       background: url('cave_background.jpg') no-repeat center center;
@@ -35,7 +35,7 @@
     };
     heroImage.src = "miner.png";
 
-    // coin image
+    // Coin image
     var coinReady = false;
     var coinImage = new Image();
     coinImage.onload = function () {
@@ -65,23 +65,7 @@
       x: 0,
       y: 0
     };
-    var gameObjects = [
-    //   {
-    //   x: 0,
-    //   y: 0,
-    //   type: "coin"
-    // },
-    // {
-    //   x: 0,
-    //   y: 0,
-    //   type: "mine"
-    // },
-    // {
-    //   x: 0,
-    //   y: 0,
-    //   type: "diamond"
-    // }
-    ]; // Array of coins
+    var gameObjects = []; // Array of game objects
     var points = 0;
 
     // Sound
@@ -91,7 +75,7 @@
     var gameOver = false;
 
     // Game timer
-    var gameTimer = 30; // 60 seconds
+    var gameTimer = 30; // 30 seconds
 
     // Handle keyboard controls
     var keysDown = {};
@@ -104,8 +88,9 @@
       delete keysDown[e.keyCode];
     }, false);
 
-    // Reset the game when the player catches a coin
+    // Generate gems
     var generateGems = function () {
+      gameObjects = [];
 
       // Generate randomly 3 scoring objects
       for (let index = 0; index < 3; index++) {
@@ -139,10 +124,23 @@
         hero.x += hero.speed * modifier;
       }
 
+      // Handle boundaries
+      if (hero.x < 0) {
+        hero.x = 0;
+      }
+      if (hero.x > canvas.width - 32) {
+        hero.x = canvas.width - 32;
+      }
+      if (hero.y < 0) {
+        hero.y = 0;
+      }
+      if (hero.y > canvas.height - 32) {
+        hero.y = canvas.height - 32;
+      }
+
       let pointsLeft = false;
       // Are they touching?
       gameObjects.forEach(function (gameObject, index) {
-
         if (gameObject.type === "diamond" || gameObject.type === "coin") {
           pointsLeft = true;
         }
@@ -153,34 +151,23 @@
           && hero.y <= (gameObject.y + 32)
           && gameObject.y <= (hero.y + 32)
         ) {
-
           switch (gameObject.type) {
             case "coin":
               // Play sound
               sound.play();
-
               ++points;
-
               gameObjects.splice(index, 1); // Remove caught coin
-
               break;
-
             case "diamond":
               // Play sound
               sound.play();
-
               points += 3;
-
-              gameObjects.splice(index, 1); // Remove caught coin
-
+              gameObjects.splice(index, 1); // Remove caught diamond
               break;
-
             case "mine":
-              gameObjects.splice(index, 1); // Remove caught coin
-
+              gameObjects.splice(index, 1); // Remove caught mine
               gameOver = true;
               break;
-
             default:
               break;
           }
@@ -194,7 +181,6 @@
       if (points >= 15) {
         gameOver = true;
       }
-
     };
 
     // Draw everything
@@ -207,9 +193,8 @@
         ctx.drawImage(heroImage, hero.x, hero.y);
       }
 
-      if (coinReady && mineReady) {
+      if (coinReady && mineReady && diamondReady) {
         gameObjects.forEach(function (gameObject) {
-
           switch (gameObject.type) {
             case "coin":
               ctx.drawImage(coinImage, gameObject.x, gameObject.y);
@@ -223,7 +208,6 @@
             default:
               break;
           }
-
         });
       }
 
@@ -236,12 +220,10 @@
       // Place objective on screen at middle top
       ctx.fillText("Objective: Make $15 before running out of oxygen!", 32, canvas.height - 32);
 
-
-    
       ctx.fillText("Profit: $" + points + ".00", 32, 32);
 
       // Timer
-      ctx.fillText("Oxygen left: " + Math.ceil(gameTimer) + "lbs", 32, 64);
+      ctx.fillText("Oxygen left: " + Math.ceil(gameTimer) + " lbs", 32, 64);
 
       // Game over / win
       if (gameOver) {
@@ -257,7 +239,6 @@
     var main = function () {
       var now = Date.now();
       var delta = now - then;
-      var gameOverFrame = false;
 
       update(delta / 1000);
       render();
@@ -276,10 +257,7 @@
         requestAnimationFrame(main);
       } else {
         // Render one last time to show game over screen
-        if (!gameOverFrame) {
-          gameOverFrame = true;
-          render();
-        }
+        render();
       }
     };
 
@@ -289,7 +267,6 @@
 
     // Let's play this game!
     var then = Date.now();
-
     hero.x = canvas.width / 2;
     hero.y = canvas.height / 2;
     generateGems();
