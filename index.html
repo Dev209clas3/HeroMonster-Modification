@@ -19,45 +19,57 @@
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
 
+    console.log("Initializing images...");
+
     // Background image
     var bgReady = false;
     var bgImage = new Image();
     bgImage.onload = function () {
       bgReady = true;
+      console.log("Background image loaded.");
     };
     bgImage.src = "cave_background.jpg";
+    console.log("Background image loading...");
 
     // Hero image
     var heroReady = false;
     var heroImage = new Image();
     heroImage.onload = function () {
       heroReady = true;
+      console.log("Hero image loaded.");
     };
     heroImage.src = "miner.png";
+    console.log("Hero image loading...");
 
     // Coin image
     var coinReady = false;
     var coinImage = new Image();
     coinImage.onload = function () {
       coinReady = true;
+      console.log("Coin image loaded.");
     };
     coinImage.src = "coin.png";
+    console.log("Coin image loading...");
 
     // Mine image
     var mineReady = false;
     var mineImage = new Image();
     mineImage.onload = function () {
       mineReady = true;
+      console.log("Mine image loaded.");
     };
     mineImage.src = "mine.png";
+    console.log("Mine image loading...");
 
     // Diamond image
     var diamondReady = false;
     var diamondImage = new Image();
     diamondImage.onload = function () {
       diamondReady = true;
+      console.log("Diamond image loaded.");
     };
     diamondImage.src = "diamond.png";
+    console.log("Diamond image loading...");
 
     // Game objects
     var hero = {
@@ -275,3 +287,4 @@
 </body>
 
 </html>
+
